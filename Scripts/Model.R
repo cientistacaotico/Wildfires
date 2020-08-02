@@ -15,5 +15,43 @@ ipak(c('ggplot2', 'raster'))
 dado <- read.table("./Data/Regression/data_regression.txt", header = T)
 dado <- na.omit(dado) # Remove missing data
 
-regression <- lm(log(dado$areakm) ~ dado$hostspot_m+dado$fence_m+dado$house_m+dado$road_m+dado$river_m+dado$ruralbuild_m)
-summary(regression)
+reg <- lm(log(dado$areakm) ~ dado$hostspot_km+dado$fence_km+dado$house_km+dado$road_km+dado$river_km+dado$ruralbuild_km)
+summary(reg)
+
+# Load density data
+
+hotspot <- raster::raster('./Data/Density_variables/hotspots.tif')
+road <- raster::raster('./Data/Density_variables/roads.tif')
+river <- raster::raster('./Data/Density_variables/rivers.tif')
+
+# Load shapefile - geographical boundaries
+
+mask <- raster::shapefile('./Shapefile/mask.shp')
+
+# Fitting model
+
+fitting <- hotspot*reg$coefficients[2]+road*reg$coefficients[5]+river*reg$coefficients[6]
+clipping <- raster::mask(fitting, mask)
+
+# Function for standarding raster
+
+STANDAR <- function(x) {
+  result <-
+    (x - raster::cellStats(x, min)) / (raster::cellStats(x, max) - raster::cellStats(x, min))
+  return(result)
+}
+
+WRM <- STANDAR(clipping)
+
+# Load evaluation data
+
+evaluation <- raster::raster('./Data/Evaluation/occurrences.tif')
+
+# Creating evaluation binary data
+
+WRM_xy <- na.omit(as.data.frame(WRM, xy = TRUE))
+
+
+
+
+

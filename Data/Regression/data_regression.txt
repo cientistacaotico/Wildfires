@@ -1,4 +1,4 @@
-areakm	hostspot_m	fence_m	house_m	road_m	river_m	ruralbuild_m
+areakm	hostspot_km	fence_km	house_km	road_km	river_km	ruralbuild_km
 0.5563	0.372	0.647	5.125	0.115	0.644	1.186
 2.8	0.711	0.912	4.447	0.142	0.461	3.61
 7.36	0.302	0.06	NA	0.037	1.605	1.683
