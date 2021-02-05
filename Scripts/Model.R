@@ -53,42 +53,19 @@ gwr.model <- gwr(log(Area) ~ log(Houses) + log(Roads) + log(Rivers) + log(Buildi
                 hatmatrix = TRUE, 
                 se.fit = TRUE) 
 
-gwr.model$SDF$localR2 # R2
-gwr.model$SDF$gwr.e # Residuals 
-  
+# Write table - R2
 
-# Load density data
+write.table(cbind(dado$Long, dado$Lat, gwr.model$SDF$localR2), 
+            file = "./Results/R2.txt", 
+            row.names = FALSE,
+            col.names = c("Long", "Lat", "R2"))
 
-hotspot <- raster::raster('./Data/Density_variables/hotspots.tif')
-road <- raster::raster('./Data/Density_variables/roads.tif')
-river <- raster::raster('./Data/Density_variables/rivers.tif')
+# Write table - Residuals
 
-# Load shapefile - geographical boundaries
-
-mask <- raster::shapefile('./Shapefile/mask.shp')
-
-# Fitting model
-
-fitting <- hotspot*reg$coefficients[2]+road*reg$coefficients[5]+river*reg$coefficients[6]
-clipping <- raster::mask(fitting, mask)
-
-# Function for standarding raster
-
-STANDAR <- function(x) {
-  result <-
-    (x - raster::cellStats(x, min)) / (raster::cellStats(x, max) - raster::cellStats(x, min))
-  return(result)
-}
-
-WRM <- STANDAR(clipping)
-
-# Load evaluation data
-
-evaluation <- raster::raster('./Data/Evaluation/occurrences.tif')
-
-# Creating evaluation binary data
-
-WRM_xy <- na.omit(as.data.frame(WRM, xy = TRUE))
+write.table(cbind(dado$Long, dado$Lat, gwr.model$SDF$gwr.e), 
+            file = "./Results/Residuals.txt", 
+            row.names = FALSE,
+            col.names = c("Long", "Lat", "Residuals"))
 
 
 
