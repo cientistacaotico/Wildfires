@@ -1,4 +1,5 @@
-# Load packages
+# Load Packages -----------------------------------------------------------
+
 # https://gist.github.com/stevenworthington/3178163
 
 ipak <- function(pkg){
@@ -8,15 +9,53 @@ ipak <- function(pkg){
   sapply(pkg, require, character.only = TRUE)
 }
 
-ipak(c('ggplot2', 'raster'))
+ipak(c('ggplot2', 'raster', 'GGally', 'MASS', 'car', 'spgwr'))
 
-# Load regression data
+# Load regression data ----------------------------------------------------
 
-dado <- read.table("./Data/Regression/data_regression.txt", header = T)
+dado <- read.table("./Data/Regression/data.txt", header = T)
 dado <- na.omit(dado) # Remove missing data
 
-reg <- lm(log(dado$areakm) ~ dado$hostspot_km+dado$fence_km+dado$house_km+dado$road_km+dado$river_km+dado$ruralbuild_km)
-summary(reg)
+# Correlogram -------------------------------------------------------------
+
+corr <- GGally::ggpairs(data = log(dado[,3:ncol(dado)]))
+
+ggsave(filename = "./Results/corr.tiff", 
+       plot = corr, 
+       units = "cm", 
+       dpi = 600,
+       width = 20, 
+       height = 12)
+
+# Stepwise Regression -----------------------------------------------------
+
+regression <- lm(log(Area) ~ log(Fences) + log(Houses) + log(Roads) + log(Rivers) + log(Buildings), data = dado)
+summary(regression)
+
+step.model <- stepAIC(regression, direction = "backward")
+
+ANOVA <- as.data.frame(step.model$anova)
+write.table(x = ANOVA, file = "./Results/anova-table.txt", row.names = FALSE)
+
+# GWR ---------------------------------------------------------------------
+
+# Calculate kernel bandwidth
+
+GWRbandwidth <- gwr.sel(log(Area) ~ log(Houses) + log(Roads) + log(Rivers) + log(Buildings), 
+                        data = dado, 
+                        coords=cbind(dado$Long, dado$Lat),
+                        adapt=T) 
+# Run the GWR model
+
+gwr.model <- gwr(log(Area) ~ log(Houses) + log(Roads) + log(Rivers) + log(Buildings), 
+                data = dado, coords=cbind(dado$Long, dado$Lat), 
+                adapt = GWRbandwidth, 
+                hatmatrix = TRUE, 
+                se.fit = TRUE) 
+
+gwr.model$SDF$localR2 # R2
+gwr.model$SDF$gwr.e # Residuals 
+  
 
 # Load density data
 
