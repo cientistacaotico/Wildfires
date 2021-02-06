@@ -77,7 +77,11 @@ M <- knearneigh(coord, k=4)
 
 M <- knn2nb(M)
 
+# Create a spatial weights matrix object from these weights
+
 M <- nb2listw(M,style = 'C')
+
+# Run moran's I test
 
 gwr.morantest(gwr.model, M)
 
