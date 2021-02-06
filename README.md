@@ -1,4 +1,4 @@
-# R programming for produce a paper about the effect of latent variables on wildfires risk
+# R programming for produce a paper about the effect of latent variables present at the landscape on wildfires risk
 
 1. We conduced a Geographically Weigthed Regression (GWR)
     + Correlogram
