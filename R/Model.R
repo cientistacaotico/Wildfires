@@ -85,6 +85,37 @@ M <- nb2listw(M,style = 'C')
 
 gwr.morantest(gwr.model, M)
 
+# Simple Linear Regressions -----------------------------------------------
+
+dado.slr <- na.omit(as.data.frame(dado[,-c(1,2)]))
+
+names <- colnames(dado.slr)
+
+for (i in 2:ncol(dado.slr)) {
+  Regression <- lm(formula = log(dado.slr[,1]) ~ log(dado.slr[,i]), data = dado.slr)
+  SUMMARY <- summary(Regression)
+  Parameters <- SUMMARY$coefficients[2,]
+  R2 <- SUMMARY$r.squared
+  if(i == 2){
+    table <- c(names[i], Parameters, R2)
+  } else{
+    table2 <- c(names[i], Parameters, R2)
+    table <- data.frame(rbind(table, table2))
+  }
+}
+
+# Organizing the table
+
+row.names(table) <- NULL
+names <- colnames(table)
+names[1] <- "Variable"
+names[6] <- "R2"
+table <- `colnames<-`(table, names)
+write.table(x = table, 
+            file = "./Results/regressions.txt", 
+            row.names = FALSE)
+
+
 
 
 
