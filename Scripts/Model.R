@@ -9,7 +9,7 @@ ipak <- function(pkg){
   sapply(pkg, require, character.only = TRUE)
 }
 
-ipak(c('ggplot2', 'raster', 'GGally', 'MASS', 'car', 'spgwr'))
+ipak(c('ggplot2', 'raster', 'GGally', 'MASS', 'car', 'spgwr', 'spdep'))
 
 # Load regression data ----------------------------------------------------
 
@@ -67,6 +67,19 @@ write.table(cbind(dado$Long, dado$Lat, gwr.model$SDF$gwr.e),
             row.names = FALSE,
             col.names = c("Long", "Lat", "Residuals"))
 
+# Moran Index -------------------------------------------------------------
+
+# Generate a spatial weights matrix using nearest neighbours
+
+coord <- as.matrix(dado[,1:2])
+
+M <- knearneigh(coord, k=4)
+
+M <- knn2nb(M)
+
+M <- nb2listw(M,style = 'C')
+
+gwr.morantest(gwr.model, M)
 
 
 
