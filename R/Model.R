@@ -115,62 +115,27 @@ write.table(x = table,
             file = "./Results/regressions.txt", 
             row.names = FALSE)
 
-# Forest plot -------------------------------------------------------------
-
-# Function to calculate the confidence interval
-
-ic.m <- function(x, conf = 0.95){
-  n <- length(x)
-  media <- mean(x)
-  variancia <- var(x)
-  quantis <- qt(c((1-conf)/2, 1 - (1-conf)/2), df = n-1)
-  ic <- media + quantis * sqrt(variancia/n)
-  lo<- ic[1]
-  up<-ic[2]
-  med<- media
-  ic<-cbind(med,lo,up)
-  return(ic)
-}
+# Graph -------------------------------------------------------------------
 
 # Load data
 
-data.for <- read.table("./Data/Forest_plot/coord.txt", header = T)
+data.bar <- read.table("./Data/Forest_plot/coord.txt", header = T)
 R2 <- raster::raster("./Data/Rasters/R2.tif")
 
 # Extracting
 
-R2 <- extract(R2, data.for[,1:2])
-data.for <- as.data.frame(`colnames<-`(cbind(data.for[,-c(1,2)], R2), c("Class", "R2")))
-
-# Confidence Interval
+R2 <- extract(R2, data.bar[,1:2])
+data.for <- as.data.frame(`colnames<-`(cbind(data.bar[,-c(1,2)], R2), c("Class", "R2")))
 
 group <- data.for %>% group_by(Class) %>% summarise(no_rows = length(Class))
 
-dataM <- matrix(nrow = nrow(group), ncol = 5)
 
-for (i in 1:nrow(group)) {
-  selection <- data.for[data.for[,1] == group$Class[i],][,2]
-  dataM[i,1] <- group$Class[i]
-  dataM[i,2] <- length(selection)
-  dataM[i,3:5] <- ic.m(as.numeric(selection))
-  dataM <- as.data.frame(`colnames<-`(dataM, c("Class", "Replicates", "med", "lo", "up")))
-}
-
-write.table(dataM, file = "./Results/forest_data.txt")
-
-# Figure
-
-dataM <- read.table("./Results/forest_data.txt", header = TRUE) 
-
-ggplot(data = dataM, aes(x = med, y = Class, xmax = up, xmin = lo)) +
-  geom_errorbarh(alpha = 0.5, color="black",height = 0.4) +
-  geom_point(aes(size = factor(Replicates)), 
-             shape = 15) +
-  labs(size = "On-field\nobservations") +
-  xlab("R²") +
-  ylab("") +
-  theme_bw() + 
-  scale_y_discrete(limits = c("CL","CR","CS","FE","MC","SE","SS","VR"),
+barras <- ggplot(data = group, aes(x = Class, y = no_rows)) +
+  geom_bar(stat = "identity", fill = "#B22222") +
+  coord_flip() +
+  # ylab("") +
+  # xlab("") +
+  scale_x_discrete(limits = c("CL","CR","CS","FE","MC","SE","SS","VR"),
                    labels = c("Clean Field",
                               "Rupestrian Field",
                               "Dirty Field",
@@ -179,16 +144,12 @@ ggplot(data = dataM, aes(x = med, y = Class, xmax = up, xmin = lo)) +
                               "Exposed Soil",
                               "Typical Cerrado",
                               "Palm Swamp")) +
-  scale_x_continuous(limits = c(0, 1), breaks = c(0, 1),
-                     labels = c("0", "1")) +
-  theme(axis.text.x = element_text(colour = "black", size = 12),
-        axis.text.y = element_text(colour = "black", size = 12),
-        axis.ticks.x = element_blank(), 
-        text = element_text(colour = "black", size = 12),
-        legend.position = "none",
-        panel.grid.major = element_line(colour = "grey95"))
+  scale_y_continuous(limits = c(0,10), breaks = c(0,2,4,6,8,10)) +
+  theme_bw() +
+  theme(axis.title = element_blank(),
+        axis.line = element_line(colour = "black"),
+        axis.text = element_text(colour = "black", size = 12),
+        panel.grid = element_blank(), )
 
-ggsave(plot = forestplot, filename = "forestplot.tiff", width = 16.5, height = 12, units = "cm", dpi = 300)
-
-
+ggsave(plot = barras, filename = "./Results/barras.tiff", units = "cm", dpi = 300)
 
