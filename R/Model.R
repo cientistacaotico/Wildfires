@@ -13,12 +13,11 @@ ipak(c('ggplot2', 'raster', 'GGally', 'MASS', 'car', 'spgwr', 'spdep', 'dplyr'))
 
 # Load regression data ----------------------------------------------------
 
-dado <- read.table("./Data/Regression/data.txt", header = T)
-dado <- na.omit(dado) # Remove missing data
+dado <- read.table("./Data/data.txt", header = T)
 
 # Correlogram -------------------------------------------------------------
 
-corr <- GGally::ggpairs(data = log(dado[,3:ncol(dado)]))
+corr <- GGally::ggpairs(data = log(dado[,4:8]))
 
 ggsave(filename = "./Results/corr.tiff", 
        plot = corr, 
@@ -119,16 +118,16 @@ write.table(x = table,
 
 # Load data
 
-data.bar <- read.table("./Data/Forest_plot/coord.txt", header = T)
 R2 <- raster::raster("./Data/Rasters/R2.tif")
 
 # Extracting
 
-R2 <- extract(R2, data.bar[,1:2])
-data.for <- as.data.frame(`colnames<-`(cbind(data.bar[,-c(1,2)], R2), c("Class", "R2")))
+R2 <- extract(R2, dado[,1:2])
 
-group <- data.for %>% group_by(Class) %>% summarise(no_rows = length(Class))
+dado <- as.data.frame(dado[,ncol(dado)])
+colnames(dado) <- "Class"
 
+group <- dado %>% group_by(Class) %>% summarise(no_rows = length(Class))
 
 barras <- ggplot(data = group, aes(x = Class, y = no_rows)) +
   geom_bar(stat = "identity", fill = "#B22222") +
